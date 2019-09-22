@@ -434,8 +434,19 @@ class Peer(object):
         """:param base: The base router that has this peer
         :param node: The actual peer"""
         self.peer, other = self._find_peer_address(base, node, v6=v6)
+        self.update_source = None
         if not self.peer:
             return
+
+        # If peers are over iBGP, we use the loopback addresses
+        peer_loopbacks = list(other.intf("lo").ip6s(exclude_lbs=True, exclude_lls=True)) if v6\
+            else list(other.intf("lo").ips(exclude_lbs=True))
+        loopbacks = list(base.intf("lo").ip6s(exclude_lbs=True, exclude_lls=True)) if v6\
+            else list(base.intf("lo").ips(exclude_lbs=True))
+        if base.asn == other.asn and len(peer_loopbacks) > 0 and len(loopbacks) > 0:
+            self.peer = peer_loopbacks[0].ip.compressed
+            self.update_source = loopbacks[0].ip.compressed
+
         self.node = node
         self.asn = other.asn
         self.family = 'ipv4' if not v6 else 'ipv6'
