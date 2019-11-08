@@ -170,8 +170,12 @@ class IPNet(Mininet):
         :return: a node name"""
         return self._ip_allocs[str(ip)]
 
+    def pre_router_start(self):
+        pass
+
     def start(self):
         super(IPNet, self).start()
+        self.pre_router_start()
         log.info('*** Starting, ', len(self.routers), 'routers\n')
         for router in self.routers:
             log.info(router.name + ' ')
